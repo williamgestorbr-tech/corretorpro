@@ -222,7 +222,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                         <li><i className="fa-solid fa-check"></i> Gerador de Anúncios Ilimitado</li>
                         <li><i className="fa-solid fa-check"></i> Copies para 4 Plataformas</li>
                         <li><i className="fa-solid fa-check"></i> Inteligência Artificial Premium</li>
-                        <li><i className="fa-solid fa-check"></i> Watermark Profissional</li>
+                        <li><i className="fa-solid fa-check"></i> <strong>Sua Logo em Todas as Fotos com 1 clique</strong></li>
+                        <li><i className="fa-solid fa-check"></i> Watermark Profissional Ultra HD</li>
                         <li><i className="fa-solid fa-check"></i> Histórico de Descrições</li>
                         <li><i className="fa-solid fa-check"></i> Suporte Prioritário</li>
                     </ul>

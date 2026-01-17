@@ -561,14 +561,20 @@
 }
 
 .price-card {
-    max-width: 450px;
+    max-width: 480px;
     margin: 60px auto 0;
-    padding: 60px 40px;
-    background: var(--bg-card);
-    border-radius: 40px;
+    padding: 70px 48px;
+    background: linear-gradient(145deg, var(--bg-card), rgba(30, 41, 59, 0.8));
+    border-radius: 48px;
     position: relative;
     border: 1px solid var(--primary);
-    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+    transition: all 0.4s ease;
+}
+
+.price-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 50px 120px rgba(37, 99, 235, 0.15);
 }
 
 .price-card::after {
@@ -586,9 +592,11 @@
 }
 
 .price-value {
-    font-size: 4rem;
+    font-size: 5rem;
     font-weight: 900;
-    margin: 20px 0;
+    margin: 30px 0;
+    letter-spacing: -3px;
+    color: white;
 }
 
 .price-period {
