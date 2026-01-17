@@ -592,16 +592,25 @@
 }
 
 .price-value {
-    font-size: 5rem;
+    font-size: clamp(3rem, 10vw, 4.5rem);
+    /* Responsive font size */
     font-weight: 900;
-    margin: 30px 0;
-    letter-spacing: -3px;
+    margin: 20px 0;
+    letter-spacing: -2px;
     color: white;
+    white-space: nowrap;
+    /* Prevent "R$" from breaking away */
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
 }
 
 .price-period {
     font-size: 1rem;
     color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0;
 }
 
 .check-list {
