@@ -294,12 +294,7 @@ const MainAppContent: React.FC<{
 
   if (showAdminPanel && isAdmin) {
     return (
-      <div className="relative">
-        <button onClick={() => setShowAdminPanel(false)} className="fixed top-4 right-4 z-[100] bg-white text-slate-900 px-6 py-3 rounded-2xl font-black text-xs uppercase shadow-2xl border">
-          <i className="fa-solid fa-arrow-left mr-2"></i> Voltar para App
-        </button>
-        <AdminDashboard showToast={showToast} />
-      </div>
+      <AdminDashboard showToast={showToast} onBack={() => setShowAdminPanel(false)} />
     );
   }
 

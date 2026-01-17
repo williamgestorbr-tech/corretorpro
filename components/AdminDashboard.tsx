@@ -14,16 +14,26 @@ interface UserProfile {
 
 interface AdminDashboardProps {
     showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
+    onBack: () => void;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast, onBack }) => {
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [showScrollTop, setShowScrollTop] = useState(false);
     const itemsPerPage = 6;
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowScrollTop(window.scrollY > 400);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     // Form states for editing
     const [editName, setEditName] = useState('');
@@ -37,8 +47,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            // Nota: Para listar todos os usuários do AUTH, normalmente precisaríamos do Admin API.
-            // Aqui estamos listando da nossa tabela 'public.profiles' que espelha os usuários.
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
@@ -57,7 +65,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
         setEditingUser(user);
         setEditName(user.name || '');
         setEditEmail(user.email || '');
-        setEditPassword(''); // Senha sempre vazia por segurança
+        setEditPassword('');
     };
 
     const toggleUserStatus = async (user: UserProfile) => {
@@ -65,33 +73,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
         setError(null);
         try {
             const newStatus = user.is_active === false ? true : false;
-            console.log(`Tentando mudar status de ${user.email} para ${newStatus}...`);
-
             const { data, error: updateError } = await supabase
                 .from('profiles')
                 .update({ is_active: newStatus })
                 .eq('id', user.id)
                 .select();
 
-            if (updateError) {
-                console.error("Erro técnico do Supabase:", updateError);
-                if (updateError.message.includes('is_active') || updateError.code === 'PGRST204') {
-                    throw new Error(`⚠️ BANCO DESATUALIZADO: A coluna 'is_active' não existe na tabela 'profiles'. 
-                    ERRO TÉCNICO: ${updateError.message}
-                    SOLUÇÃO: O SQL que você rodou pode não ter sido aplicado na tabela correta ou o cache não limpou.`);
-                }
-                throw updateError;
-            }
+            if (updateError) throw updateError;
+            if (!data || data.length === 0) throw new Error("⚠️ PERMISSÃO NEGADA");
 
-            if (!data || data.length === 0) {
-                console.warn("Update bem sucedido tecnicamente, mas 0 linhas alteradas. RLS?");
-                throw new Error("⚠️ PERMISSÃO NEGADA: O comando foi enviado, mas o banco de dados não permitiu a alteração. Isso acontece por causa das políticas de segurança (RLS) do Supabase.");
-            }
-
-            console.log("Status atualizado com sucesso:", data[0]);
             fetchUsers();
         } catch (err: any) {
-            console.error("Erro ao alternar status:", err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -104,7 +96,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
         setError(null);
 
         try {
-            // 1. Atualizar Perfil Público (Nome) - Isso continua via Tabela de Perfis
             const { error: profileError } = await supabase
                 .from('profiles')
                 .update({ name: editName })
@@ -112,8 +103,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
 
             if (profileError) throw profileError;
 
-            // 2. Atualizar Credenciais de Autenticação (Email/Senha) via Edge Function
-            // Só chamamos se houver alteração de email ou se houver nova senha
             const hasEmailChanged = editEmail !== editingUser.email;
             const hasPassword = editPassword.length >= 6;
 
@@ -126,26 +115,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
                     }
                 });
 
-                if (funcError) {
-                    // Tentar extrair mensagem se for um erro de sistema do Supabase
-                    const errorMsg = funcError instanceof Error ? funcError.message : JSON.stringify(funcError);
-                    throw new Error(`Erro na Função: ${errorMsg}`);
-                }
-
-                if (data?.error) {
-                    throw new Error(data.details ? `${data.error} (${data.details})` : data.error);
-                }
+                if (funcError) throw funcError;
+                if (data?.error) throw new Error(data.error);
             }
 
             setEditingUser(null);
             setEditPassword('');
             fetchUsers();
-            showToast("Transação concluída! Os dados do corretor foram atualizados com sucesso.", "success");
+            showToast("Dados atualizados com sucesso.", "success");
         } catch (err: any) {
-            console.error("Erro ao salvar:", err);
-            // Se for um erro de invoke, ele pode estar dentro de um objeto
-            const finalError = err.message || "Erro desconhecido na Edge Function";
-            setError(finalError);
+            setError(err.message);
         } finally {
             setLoading(false);
         }
@@ -153,40 +132,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
 
     const downloadPendingUsers = () => {
         const pendingUsers = users.filter(u => u.subscription_status === 'inactive' || u.is_active === false);
-
         if (pendingUsers.length === 0) {
-            showToast("Não há usuários pendentes para baixar.", "info");
+            showToast("Não há usuários pendentes.", "info");
             return;
         }
-
-        // CSV Header
         const headers = ["ID", "Nome", "E-mail", "Status", "Criado em"];
-
-        // CSV Rows
-        const rows = pendingUsers.map(u => [
-            u.id,
-            u.name || "N/A",
-            u.email,
-            u.subscription_status || (u.is_active === false ? "Suspenso" : "Pendente"),
-            new Date(u.created_at).toLocaleDateString('pt-BR')
-        ]);
-
-        // Combine
-        const csvContent = [
-            headers.join(","),
-            ...rows.map(r => r.join(","))
-        ].join("\n");
-
-        // Create download link
+        const rows = pendingUsers.map(u => [u.id, u.name || "N/A", u.email, u.subscription_status || (u.is_active === false ? "Suspenso" : "Pendente"), new Date(u.created_at).toLocaleDateString('pt-BR')]);
+        const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.setAttribute("href", url);
-        link.setAttribute("download", `usuarios_pendentes_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
+        link.setAttribute("download", `usuarios_pendentes.csv`);
         link.click();
-        document.body.removeChild(link);
     };
 
     const filteredUsers = users.filter(user =>
@@ -195,59 +153,64 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
     );
 
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-    const paginatedUsers = filteredUsers.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-    // Reset to first page when searching
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm]);
+    useEffect(() => { setCurrentPage(1); }, [searchTerm]);
 
     return (
         <div className="min-h-screen bg-[#0F172A] text-white px-6 md:px-8 py-8 font-sans">
             <div className="max-w-7xl mx-auto">
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-                    <div>
+                <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 relative">
+                    <div className="flex-1">
                         <div className="flex items-center gap-4 mb-2">
                             <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-slate-900 shadow-lg shadow-amber-500/20">
                                 <i className="fa-solid fa-shield-halved text-lg"></i>
                             </div>
-                            <h1 className="text-3xl font-black tracking-tight uppercase">Painel de Controle</h1>
+                            <h1 className="text-2xl md:text-3xl font-black tracking-tight uppercase">Painel de Controle</h1>
                         </div>
-                        <p className="text-slate-400 font-medium">Gestão centralizada de corretores e acessos</p>
+                        <p className="text-slate-400 font-medium text-sm md:text-base">Gestão centralizada de corretores e acessos</p>
                     </div>
 
-                    <div className="flex flex-wrap gap-4 w-full md:w-auto">
-                        <div className="bg-white/5 backdrop-blur-md px-6 py-4 rounded-[24px] border border-white/10 flex-1 min-w-[140px]">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Faturamento Previsto</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-2xl font-black text-green-400">
-                                    {(users.filter(u => u.subscription_status === 'active' || u.is_active !== false).length * 49.9).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                </span>
-                            </div>
-                        </div>
+                    <button
+                        onClick={onBack}
+                        className="md:absolute md:top-0 md:right-0 bg-white hover:bg-slate-50 text-slate-900 px-5 py-3 rounded-2xl font-black text-[10px] md:text-xs uppercase shadow-xl border border-slate-200 flex items-center gap-2 transition-all active:scale-95 z-20"
+                    >
+                        <i className="fa-solid fa-arrow-left"></i>
+                        Voltar para App
+                    </button>
 
-                        <div className="bg-white/5 backdrop-blur-md px-6 py-4 rounded-[24px] border border-white/10 flex-1 min-w-[140px]">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Não Renovados</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-2xl font-black text-red-400">
-                                    {users.filter(u => u.subscription_status === 'inactive' || u.is_active === false).length}
-                                </span>
-                                <span className="text-[10px] font-bold text-slate-500 uppercase">Contas</span>
-                            </div>
-                        </div>
-
-                        <div className="bg-white/5 backdrop-blur-md px-6 py-4 rounded-[24px] border border-white/10 flex-1 min-w-[140px]">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Corretores</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-2xl font-black text-blue-400">{users.length}</span>
-                                <i className="fa-solid fa-users text-blue-400/30"></i>
-                            </div>
-                        </div>
+                    <div className="flex flex-wrap gap-4 w-full md:w-auto mt-4 md:mt-24 lg:mt-0 xl:mt-0">
                     </div>
                 </header>
+
+                <div className="flex flex-wrap gap-4 w-full mb-12">
+                    <div className="bg-white/5 backdrop-blur-md px-6 py-4 rounded-[24px] border border-white/10 flex-1 min-w-[140px]">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Faturamento Previsto</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-green-400">
+                                {(users.filter(u => u.subscription_status === 'active' || u.is_active !== false).length * 49.9).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="bg-white/5 backdrop-blur-md px-6 py-4 rounded-[24px] border border-white/10 flex-1 min-w-[140px]">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Não Renovados</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-red-400">
+                                {users.filter(u => u.subscription_status === 'inactive' || u.is_active === false).length}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase">Contas</span>
+                        </div>
+                    </div>
+
+                    <div className="bg-white/5 backdrop-blur-md px-6 py-4 rounded-[24px] border border-white/10 flex-1 min-w-[140px]">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Corretores</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-blue-400">{users.length}</span>
+                            <i className="fa-solid fa-users text-blue-400/30"></i>
+                        </div>
+                    </div>
+                </div>
 
                 <div className="mb-10 flex flex-col md:flex-row gap-4 items-center justify-between bg-white/5 backdrop-blur-md p-6 rounded-[24px] border border-white/10 shadow-xl">
                     <div className="relative w-full md:max-w-md">
@@ -359,7 +322,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
                     )}
                 </div>
 
-                {/* Paginação */}
                 {totalPages > 1 && (
                     <div className="flex items-center justify-center gap-2 mt-8 pb-10">
                         <button
@@ -374,8 +336,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
                                 key={i + 1}
                                 onClick={() => setCurrentPage(i + 1)}
                                 className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${currentPage === i + 1
-                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                                        : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                    : 'bg-white/5 text-slate-400 hover:bg-white/10'
                                     }`}
                             >
                                 {i + 1}
@@ -392,7 +354,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
                 )}
             </div>
 
-            {/* Modal de Edição */}
             {editingUser && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[150] flex items-center justify-center p-4">
                     <div className="bg-slate-900 border border-white/10 rounded-[40px] w-full max-w-md p-10 shadow-3xl animate-in fade-in zoom-in duration-300 relative overflow-hidden">
@@ -458,6 +419,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
                     </div>
                 </div>
             )}
+
+            <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className={`fixed bottom-8 right-8 w-12 h-12 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 z-[100] border-2 border-white/20 hover:scale-110 active:scale-90 ${showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}
+            >
+                <i className="fa-solid fa-chevron-up"></i>
+            </button>
         </div>
     );
 };
