@@ -11,9 +11,14 @@ import { PropertyData, AdResponse, UserProfile as UserProfileType, HistoryItem }
 import { generateAds, generateSingleAd } from './services/geminiService';
 import { supabase } from './services/supabaseClient';
 import { Session } from '@supabase/supabase-js';
+import Toast, { ToastType } from './components/Toast';
 
 
-const MainAppContent: React.FC<{ session: Session; onSignOut: () => Promise<void> }> = ({ session, onSignOut }) => {
+const MainAppContent: React.FC<{
+  session: Session;
+  onSignOut: () => Promise<void>;
+  showToast: (message: string, type?: any) => void;
+}> = ({ session, onSignOut, showToast }) => {
   const [property, setProperty] = useState<PropertyData>({
     tipo: '',
     cidade: '',
@@ -166,7 +171,7 @@ const MainAppContent: React.FC<{ session: Session; onSignOut: () => Promise<void
         });
       }
     } catch (err) {
-      alert("Erro ao regerar descrição.");
+      showToast("Erro ao regerar descrição.", "error");
     } finally {
       setRegeneratingPlatform(null);
     }
@@ -293,7 +298,7 @@ const MainAppContent: React.FC<{ session: Session; onSignOut: () => Promise<void
         <button onClick={() => setShowAdminPanel(false)} className="fixed top-4 right-4 z-[100] bg-white text-slate-900 px-6 py-3 rounded-2xl font-black text-xs uppercase shadow-2xl border">
           <i className="fa-solid fa-arrow-left mr-2"></i> Voltar para App
         </button>
-        <AdminDashboard />
+        <AdminDashboard showToast={showToast} />
       </div>
     );
   }
@@ -403,6 +408,11 @@ const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+  const showToast = (message: string, type: ToastType = 'success') => {
+    setToast({ message, type });
+  };
 
   const handleSignOut = async () => {
     console.log("Tentando deslogar...");
@@ -456,7 +466,23 @@ const App: React.FC = () => {
     );
   }
 
-  return <MainAppContent key={session.user.id} session={session} onSignOut={handleSignOut} />;
+  return (
+    <>
+      <MainAppContent
+        key={session.user.id}
+        session={session}
+        onSignOut={handleSignOut}
+        showToast={showToast}
+      />
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+    </>
+  );
 };
 
 export default App;

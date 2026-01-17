@@ -12,7 +12,11 @@ interface UserProfile {
     subscription_status?: string;
 }
 
-const AdminDashboard: React.FC = () => {
+interface AdminDashboardProps {
+    showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
+}
+
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
@@ -133,7 +137,7 @@ const AdminDashboard: React.FC = () => {
             setEditingUser(null);
             setEditPassword('');
             fetchUsers();
-            alert("✅ Transação concluída! Os dados do corretor foram atualizados com sucesso.");
+            showToast("Transação concluída! Os dados do corretor foram atualizados com sucesso.", "success");
         } catch (err: any) {
             console.error("Erro ao salvar:", err);
             // Se for um erro de invoke, ele pode estar dentro de um objeto
@@ -148,7 +152,7 @@ const AdminDashboard: React.FC = () => {
         const pendingUsers = users.filter(u => u.subscription_status === 'inactive' || u.is_active === false);
 
         if (pendingUsers.length === 0) {
-            alert("Não há usuários pendentes para baixar.");
+            showToast("Não há usuários pendentes para baixar.", "info");
             return;
         }
 
