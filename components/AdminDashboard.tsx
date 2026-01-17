@@ -295,7 +295,7 @@ const AdminDashboard: React.FC = () => {
                                                 <p className="text-sm font-medium text-slate-300">{user.email}</p>
                                             </td>
                                             <td className="px-8 py-6">
-                                                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${user.role === 'admin'
+                                                <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border whitespace-nowrap ${user.role === 'admin'
                                                     ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
                                                     : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                                                     }`}>
