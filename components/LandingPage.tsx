@@ -71,10 +71,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                     <span className="hero-tag">Inteligência Artificial para Imóveis</span>
                     <h1>Anúncios que <span className="highlight">Vendem</span><br />Gerados em Segundos</h1>
                     <p className="hero-p">Adicione sua logo em todas as fotos automaticamente, exporte em <span className="highlight" style={{ fontWeight: 800 }}>4K</span> e gere descrições irresistíveis para todas as plataformas em segundos com a nossa IA especializada.</p>
-                    <button onClick={onStart} className="cta-button">
-                        COMEÇAR AGORA POR R$ 49,90 <i className="fa-solid fa-arrow-right"></i>
-                    </button>
-                    <div style={{ marginTop: '20px' }}>
+                    <div className="hero-buttons">
+                        <button onClick={onStart} className="cta-button">
+                            COMEÇAR AGORA POR R$ 49,90 <i className="fa-solid fa-arrow-right"></i>
+                        </button>
                         <button onClick={onLogin} className="secondary-button">
                             <i className="fa-solid fa-right-to-bracket"></i> ACESSAR SISTEMA
                         </button>
