@@ -10,10 +10,10 @@ interface PropertyFormProps {
 }
 
 const PropertyForm: React.FC<PropertyFormProps> = ({ data, onChange, onSubmit, loading }) => {
-  
+
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, '');
-    
+
     if (value === '') {
       onChange('preco', '');
       return;
@@ -45,7 +45,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ data, onChange, onSubmit, l
   return (
     <div className="bg-white p-8 rounded-[32px] shadow-xl shadow-blue-50 border border-slate-100 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-full -z-0"></div>
-      
+
       <div className="relative z-10">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
@@ -56,7 +56,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ data, onChange, onSubmit, l
             <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Preencha os detalhes técnicos</p>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="group">
             <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide px-1">O que você vai anunciar?</label>
@@ -169,18 +169,18 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ data, onChange, onSubmit, l
         <button
           onClick={onSubmit}
           disabled={loading}
-          className="mt-8 w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-blue-200 flex items-center justify-center gap-3 disabled:opacity-50 uppercase tracking-widest text-sm"
+          className="mt-8 w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-blue-200 flex items-center justify-center gap-2 md:gap-3 disabled:opacity-50 uppercase tracking-widest text-[11px] sm:text-sm"
         >
           {loading ? (
-            <>
+            <div className="flex items-center gap-2">
               <i className="fa-solid fa-circle-notch animate-spin"></i>
-              Criando Copy de Alta Conversão...
-            </>
+              <span>Criando sua Copy...</span>
+            </div>
           ) : (
-            <>
+            <div className="flex items-center gap-2 md:gap-3">
               <i className="fa-solid fa-rocket"></i>
-              Gerar Estratégia de Venda
-            </>
+              <span>Gerar Legendas que Vendem</span>
+            </div>
           )}
         </button>
       </div>
