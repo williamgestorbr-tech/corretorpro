@@ -375,25 +375,39 @@ const ImageWatermark: React.FC = () => {
           </div>
 
           {images.length > 0 && (
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-              <div className="flex items-center justify-between mb-4 px-2">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Galeria de Lote ({images.length})</span>
-                <button onClick={() => setImages([])} className="text-[10px] font-black text-red-500 uppercase hover:text-red-600 transition-colors">Limpar Lote</button>
+            <div className="bg-slate-50 p-4 md:p-6 rounded-3xl border border-slate-100 transition-all">
+              <div className="flex items-center justify-between mb-4 px-1 md:px-2">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Galeria de Lote</span>
+                  <span className="text-xs font-bold text-blue-600">{images.length} fotos carregadas</span>
+                </div>
+                <button
+                  onClick={() => { if (confirm('Remover todas as fotos?')) setImages([]); }}
+                  className="bg-red-50 hover:bg-red-100 text-red-500 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-colors flex items-center gap-1.5"
+                >
+                  <i className="fa-solid fa-trash-can"></i>
+                  Limpar Lote
+                </button>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4 px-2 custom-scrollbar">
+              <div className="flex gap-4 overflow-x-auto pb-6 px-1 md:px-2 custom-scrollbar snap-x snap-mandatory">
                 {images.map((img, idx) => (
                   <div
                     key={img.id}
-                    className={`relative flex-shrink-0 w-28 aspect-square rounded-2xl overflow-hidden cursor-pointer border-4 transition-all ${currentIndex === idx ? 'border-blue-500 scale-105 shadow-xl' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                    className={`relative flex-shrink-0 w-32 md:w-28 aspect-square rounded-2xl overflow-hidden cursor-pointer border-4 transition-all snap-start ${currentIndex === idx ? 'border-blue-500 scale-105 shadow-xl ring-4 ring-blue-500/20' : 'border-white opacity-70 hover:opacity-100 hover:border-slate-200'}`}
                     onClick={() => setCurrentIndex(idx)}
                   >
                     <img src={img.data} className="w-full h-full object-cover" alt={`Preview ${idx}`} />
                     <button
                       onClick={(e) => { e.stopPropagation(); removeImage(img.id); }}
-                      className="absolute top-1 right-1 w-7 h-7 bg-red-500 hover:bg-red-600 rounded-lg text-white text-xs flex items-center justify-center shadow-lg transition-colors"
+                      className="absolute top-1.5 right-1.5 w-8 h-8 bg-black/60 hover:bg-red-500 backdrop-blur-md rounded-xl text-white text-xs flex items-center justify-center shadow-lg transition-all transform hover:scale-110"
                     >
-                      <i className="fa-solid fa-trash-can"></i>
+                      <i className="fa-solid fa-xmark"></i>
                     </button>
+                    {currentIndex === idx && (
+                      <div className="absolute inset-0 bg-blue-600/10 pointer-events-none flex items-center justify-center">
+                        <i className="fa-solid fa-eye text-white text-xl drop-shadow-md"></i>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
