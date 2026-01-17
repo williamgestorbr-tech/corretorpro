@@ -306,11 +306,12 @@ const AdminDashboard: React.FC = () => {
                                                 {new Date(user.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
                                             </td>
                                             <td className="px-8 py-6 text-center">
-                                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${user.is_active !== false
+                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border whitespace-nowrap ${user.is_active !== false
                                                     ? 'bg-green-500/10 text-green-500 border-green-500/20'
                                                     : 'bg-red-500/10 text-red-500 border-red-500/20'
                                                     }`}>
-                                                    {user.is_active !== false ? '● Ativo' : '○ Suspenso'}
+                                                    <span className={`w-1 h-1 rounded-full ${user.is_active !== false ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                                                    {user.is_active !== false ? 'Ativo' : 'Suspenso'}
                                                 </span>
                                             </td>
                                             <td className="px-8 py-6 text-right">
