@@ -187,7 +187,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0F172A] text-white p-8 font-sans">
+        <div className="min-h-screen bg-[#0F172A] text-white px-6 md:px-8 py-8 font-sans">
             <div className="max-w-7xl mx-auto">
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
                     <div>

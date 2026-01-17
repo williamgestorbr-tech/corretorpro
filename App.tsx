@@ -306,7 +306,7 @@ const MainAppContent: React.FC<{
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
               <i className="fa-solid fa-home-user text-lg"></i>
@@ -335,7 +335,7 @@ const MainAppContent: React.FC<{
           </div>
         </div>
       </header>
-      <main className="max-w-7xl mx-auto px-4 pt-10 space-y-16">
+      <main className="max-w-7xl mx-auto px-6 md:px-8 pt-10 space-y-16">
         <section id="profile-section">
           <div className="mb-6"><h2 className="text-3xl font-black text-slate-900 tracking-tight">Meu Perfil</h2></div>
           <UserProfile profile={profile} onUpdate={setProfile} />

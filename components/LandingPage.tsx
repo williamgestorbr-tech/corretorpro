@@ -64,11 +64,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
 
     return (
         <div className="lp-body">
-            <nav className="login-nav">
-                <button onClick={onLogin} className="login-button">
-                    <i className="fa-solid fa-right-to-bracket mr-2"></i> Acessar Sistema
-                </button>
-            </nav>
+
 
             <header className="lp-header">
                 <div className="hero-content reveal">
