@@ -21,9 +21,10 @@ serve(async (req) => {
 
         const url = Deno.env.get('SUPABASE_URL')
         const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
-        const serviceRoleKey = Deno.env.get('APP_SERVICE_ROLE_KEY')
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
         if (!url || !anonKey || !serviceRoleKey) {
+            console.error('Missing env vars:', { url: !!url, anonKey: !!anonKey, serviceRoleKey: !!serviceRoleKey })
             throw new Error(`Configuração de ambiente inválida no Supabase.`)
         }
 
@@ -33,8 +34,13 @@ serve(async (req) => {
 
         // 1. Validar Token do Usuário
         const { data: { user: requester }, error: userError } = await supabaseClient.auth.getUser()
+
         if (userError || !requester) {
-            return new Response(JSON.stringify({ error: 'Token inválido ou expirado. Faça login novamente.' }), {
+            console.error('Token validation failed:', userError?.message || 'No user found')
+            return new Response(JSON.stringify({
+                error: 'Token inválido ou expirado. Faça login novamente.',
+                details: userError?.message
+            }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 401
             })

@@ -130,7 +130,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
                 }
 
                 if (data?.error) {
-                    throw new Error(data.error);
+                    throw new Error(data.details ? `${data.error} (${data.details})` : data.error);
                 }
             }
 
