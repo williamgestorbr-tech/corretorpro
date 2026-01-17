@@ -134,7 +134,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) => {
                 </div>
             </section>
 
-            <section className="lp-section" style={{ background: 'var(--glass)', borderRadius: '60px', marginTop: '40px' }}>
+            <section className="lp-section features-section">
                 <div style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
                     <span className="hero-tag">Oferta Principal</span>
                     <h2 className="pain-title">Tudo o que você precisa para <span className="highlight">Dominar o Mercado</span></h2>

@@ -481,6 +481,25 @@
     .lp-section {
         padding-top: 100px;
         padding-bottom: 100px;
+        padding-left: 20px;
+        /* Added horizontal padding for all sections on mobile */
+        padding-right: 20px;
+    }
+
+    .features-section {
+        border-radius: 40px !important;
+        /* Slightly smaller radius for mobile comfort */
+    }
+
+    .price-card {
+        padding: 40px 24px;
+        /* Reduced internal padding to allow more breathing room around it */
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .feature-card {
+        padding: 30px 24px;
     }
 
     .preview-row,
@@ -592,6 +611,12 @@
 
 .check-list i {
     color: var(--primary);
+}
+
+.features-section {
+    background: var(--glass);
+    border-radius: 60px;
+    margin-top: 40px;
 }
 
 .lp-footer {
