@@ -311,12 +311,12 @@ const MainAppContent: React.FC<{
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
               <i className="fa-solid fa-home-user text-lg"></i>
             </div>
-            <div>
-              <h1 className="text-lg font-black text-slate-900 leading-none">Corretor Pro</h1>
-              <p className="text-[10px] text-blue-600 font-black uppercase tracking-widest">Plataforma Tudo-em-Um</p>
+            <div className="flex flex-col ml-1 md:ml-2">
+              <h1 className="text-[15px] sm:text-lg font-black text-slate-900 leading-none">Corretor Pro</h1>
+              <p className="text-[9px] sm:text-[10px] text-blue-600 font-black uppercase tracking-widest mt-0.5">Plataforma Tudo-em-Um</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-xs font-black text-slate-800 tracking-tight">{profile.name || "Seu Perfil"}</span>
               {profile.creci && <span className="text-[9px] font-black text-blue-600 uppercase">CRECI {profile.creci}</span>}

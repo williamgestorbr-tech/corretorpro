@@ -34,8 +34,8 @@ const ImageWatermark: React.FC = () => {
         const reader = new FileReader();
         reader.onload = (event) => {
           setImages(prev => [
-            ...prev, 
-            { 
+            ...prev,
+            {
               id: Math.random().toString(36).substr(2, 9),
               data: event.target?.result as string,
               name: file.name
@@ -96,7 +96,7 @@ const ImageWatermark: React.FC = () => {
             const logoAspectRatio = logo.width / logo.height;
             const targetWidth = (canvas.width * logoSize) / 100;
             const targetHeight = targetWidth / logoAspectRatio;
-            
+
             let lx = 0;
             let ly = 0;
             const margin = canvas.width * 0.03;
@@ -158,10 +158,10 @@ const ImageWatermark: React.FC = () => {
     if (images.length === 0) return;
     setIsProcessing(true);
     const uniqueBatchId = Math.floor(Math.random() * 9000000) + 1000000;
-    
+
     try {
       const exportCanvas = document.createElement('canvas');
-      
+
       if (exportFormat === 'jpeg') {
         for (let i = 0; i < images.length; i++) {
           await renderToCanvas(exportCanvas, images[i].data, true);
@@ -188,7 +188,7 @@ const ImageWatermark: React.FC = () => {
           unit: 'px',
           format: [EXPORT_WIDTH, EXPORT_HEIGHT]
         });
-        
+
         for (let i = 0; i < images.length; i++) {
           await renderToCanvas(exportCanvas, images[i].data, true);
           const dataUrl = exportCanvas.toDataURL('image/jpeg', 0.85);
@@ -225,7 +225,7 @@ const ImageWatermark: React.FC = () => {
             <p className="text-xs text-slate-400 font-medium uppercase tracking-tight">Formato Ultra HD (3840x2160)</p>
           </div>
         </div>
-        
+
         {images.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-3 items-end sm:items-center">
             <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
@@ -233,9 +233,8 @@ const ImageWatermark: React.FC = () => {
                 <button
                   key={fmt}
                   onClick={() => setExportFormat(fmt)}
-                  className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${
-                    exportFormat === fmt ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
-                  }`}
+                  className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${exportFormat === fmt ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                    }`}
                 >
                   {fmt}
                 </button>
@@ -270,7 +269,9 @@ const ImageWatermark: React.FC = () => {
                 <span className="text-xs font-black text-slate-500 uppercase block mb-2">Importar Fotos</span>
                 <div className="flex items-center gap-3">
                   <i className="fa-solid fa-images text-2xl text-blue-400"></i>
-                  <span className="text-sm font-bold text-slate-700">Clique para selecionar</span>
+                  <span className="text-sm font-bold text-slate-700">
+                    {images.length > 0 ? `Selecionadas (${images.length})` : 'Clique para selecionar'}
+                  </span>
                 </div>
                 <input type="file" className="hidden" accept="image/*" multiple onChange={handleBaseFilesUpload} />
               </label>
@@ -281,7 +282,10 @@ const ImageWatermark: React.FC = () => {
                 <span className="text-xs font-black text-slate-500 uppercase block mb-2">Logo do Corretor</span>
                 <div className="flex items-center gap-3">
                   <i className="fa-solid fa-signature text-2xl text-amber-400"></i>
-                  <span className="text-sm font-bold text-slate-700">{logoImage ? '✅ Logo Ativa' : 'Selecionar PNG'}</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-slate-700">Selecionar PNG</span>
+                    {logoImage && <span className="text-[10px] font-black text-green-600 uppercase flex items-center gap-1"><i className="fa-solid fa-circle-check"></i> Logo Adicionada</span>}
+                  </div>
                 </div>
                 <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
               </label>
@@ -297,9 +301,8 @@ const ImageWatermark: React.FC = () => {
                     <button
                       key={pos}
                       onClick={() => setPosition(pos)}
-                      className={`py-2 rounded-xl text-[9px] font-black uppercase transition-all border ${
-                        position === pos ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-100'
-                      }`}
+                      className={`py-2 rounded-xl text-[9px] font-black uppercase transition-all border ${position === pos ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-100'
+                        }`}
                     >
                       {pos.replace('-', ' ')}
                     </button>
@@ -331,30 +334,30 @@ const ImageWatermark: React.FC = () => {
           <div className="relative group">
             <div className="aspect-video bg-slate-900 rounded-[32px] overflow-hidden border border-slate-200 flex items-center justify-center relative shadow-2xl">
               {images.length === 0 ? (
-                <div className="text-center p-12">
-                  <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-700">
-                    <i className="fa-solid fa-cloud-arrow-up text-3xl text-slate-600"></i>
+                <div className="text-center p-8 md:p-12 flex flex-col items-center justify-center h-full">
+                  <div className="w-16 h-16 md:w-20 md:h-20 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 border border-slate-700/50 shadow-inner">
+                    <i className="fa-solid fa-cloud-arrow-up text-2xl md:text-3xl text-slate-600"></i>
                   </div>
-                  <h3 className="text-white font-bold text-lg">Área de Visualização</h3>
-                  <p className="text-slate-500 text-sm max-w-xs mx-auto">Adicione as fotos do imóvel para ver o resultado 4K aqui.</p>
+                  <h3 className="text-white font-black text-base md:text-xl tracking-tight mb-2">Área de Visualização</h3>
+                  <p className="text-slate-500 text-xs md:text-sm max-w-[200px] md:max-w-xs mx-auto font-medium leading-relaxed">Adicione as fotos do imóvel para ver o resultado 4K aqui.</p>
                 </div>
               ) : (
                 <>
                   <canvas ref={previewCanvasRef} className="max-w-full max-h-full object-contain" />
-                  
+
                   <div className="absolute top-4 right-4">
-                     <button
-                        onClick={handleExportSingle}
-                        disabled={isProcessing}
-                        className="bg-white hover:bg-slate-50 text-slate-900 font-black px-5 py-2.5 rounded-2xl text-xs flex items-center gap-2 shadow-2xl transition-all active:scale-95 disabled:opacity-50"
-                      >
-                        {isProcessing ? (
-                          <i className="fa-solid fa-circle-notch animate-spin text-blue-600"></i>
-                        ) : (
-                          <i className="fa-solid fa-download text-blue-600"></i>
-                        )}
-                        Exportar Atual 4K
-                      </button>
+                    <button
+                      onClick={handleExportSingle}
+                      disabled={isProcessing}
+                      className="bg-white hover:bg-slate-50 text-slate-900 font-black px-5 py-2.5 rounded-2xl text-xs flex items-center gap-2 shadow-2xl transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      {isProcessing ? (
+                        <i className="fa-solid fa-circle-notch animate-spin text-blue-600"></i>
+                      ) : (
+                        <i className="fa-solid fa-download text-blue-600"></i>
+                      )}
+                      Exportar Atual 4K
+                    </button>
                   </div>
 
                   {images.length > 1 && (
@@ -379,13 +382,13 @@ const ImageWatermark: React.FC = () => {
               </div>
               <div className="flex gap-4 overflow-x-auto pb-4 px-2 custom-scrollbar">
                 {images.map((img, idx) => (
-                  <div 
+                  <div
                     key={img.id}
                     className={`relative flex-shrink-0 w-28 aspect-square rounded-2xl overflow-hidden cursor-pointer border-4 transition-all ${currentIndex === idx ? 'border-blue-500 scale-105 shadow-xl' : 'border-transparent opacity-60 hover:opacity-100'}`}
                     onClick={() => setCurrentIndex(idx)}
                   >
                     <img src={img.data} className="w-full h-full object-cover" alt={`Preview ${idx}`} />
-                    <button 
+                    <button
                       onClick={(e) => { e.stopPropagation(); removeImage(img.id); }}
                       className="absolute top-1 right-1 w-7 h-7 bg-red-500 hover:bg-red-600 rounded-lg text-white text-xs flex items-center justify-center shadow-lg transition-colors"
                     >
