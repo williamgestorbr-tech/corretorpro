@@ -21,6 +21,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
     const [loading, setLoading] = useState(true);
     const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
 
     // Form states for editing
     const [editName, setEditName] = useState('');
@@ -186,6 +189,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
         document.body.removeChild(link);
     };
 
+    const filteredUsers = users.filter(user =>
+    (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const paginatedUsers = filteredUsers.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    // Reset to first page when searching
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
     return (
         <div className="min-h-screen bg-[#0F172A] text-white px-6 md:px-8 py-8 font-sans">
             <div className="max-w-7xl mx-auto">
@@ -230,6 +249,36 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
                     </div>
                 </header>
 
+                <div className="mb-10 flex flex-col md:flex-row gap-4 items-center justify-between bg-white/5 backdrop-blur-md p-6 rounded-[24px] border border-white/10 shadow-xl">
+                    <div className="relative w-full md:max-w-md">
+                        <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input
+                            type="text"
+                            placeholder="Pesquisar por nome ou e-mail..."
+                            className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium text-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex gap-3 w-full md:w-auto">
+                        <button
+                            onClick={downloadPendingUsers}
+                            className="flex-1 md:flex-none px-5 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all border border-red-500/20 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                        >
+                            <i className="fa-solid fa-file-csv"></i>
+                            Baixar Pendentes
+                        </button>
+                        <button
+                            onClick={fetchUsers}
+                            className="w-12 h-12 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all active:scale-90 border border-white/10"
+                            title="Atualizar lista"
+                        >
+                            <i className={`fa-solid fa-rotate ${loading ? 'animate-spin' : ''}`}></i>
+                        </button>
+                    </div>
+                </div>
+
                 {error && (
                     <div className="bg-red-500/20 border border-red-500/50 p-6 rounded-[24px] mb-8 text-red-200 text-sm flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
                         <i className="fa-solid fa-circle-exclamation text-xl"></i>
@@ -237,115 +286,110 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ showToast }) => {
                     </div>
                 )}
 
-                <div className="bg-white/5 backdrop-blur-xl rounded-[32px] border border-white/10 overflow-hidden shadow-2xl">
-                    <div className="p-8 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">Lista de Corretores</h3>
-                            <button
-                                onClick={downloadPendingUsers}
-                                className="px-4 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all border border-red-500/20 text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
-                                title="Baixar lista de pendentes (.csv)"
-                            >
-                                <i className="fa-solid fa-file-csv"></i>
-                                Baixar Pendentes
-                            </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                    {paginatedUsers.length === 0 && !loading ? (
+                        <div className="col-span-full bg-white/5 backdrop-blur-xl rounded-[32px] border border-white/10 p-20 text-center">
+                            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+                                <i className="fa-solid fa-users-slash text-2xl text-slate-600"></i>
+                            </div>
+                            <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Nenhum corretor encontrado</p>
                         </div>
+                    ) : (
+                        paginatedUsers.map(user => (
+                            <div key={user.id} className="bg-white/5 backdrop-blur-md rounded-[32px] border border-white/10 p-6 hover:bg-white/[0.08] transition-all group relative overflow-hidden flex flex-col h-full border-b-4 border-b-transparent hover:border-b-blue-600 shadow-lg">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center text-blue-400 font-black text-sm border border-blue-600/20 shadow-inner">
+                                            {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-base text-white group-hover:text-blue-400 transition-colors tracking-tight line-clamp-1">{user.name || 'Sem Nome'}</p>
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border mt-1 ${user.role === 'admin'
+                                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                                : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                                                }`}>
+                                                {user.role === 'admin' ? '🛡️ Admin' : '👤 Corretor'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${user.is_active !== false
+                                        ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                                        : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                        }`}>
+                                        <span className={`w-1 h-1 rounded-full ${user.is_active !== false ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                                        {user.is_active !== false ? 'Ativo' : 'Suspenso'}
+                                    </span>
+                                </div>
+
+                                <div className="space-y-4 mb-8 flex-grow">
+                                    <div>
+                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">E-mail de Acesso</label>
+                                        <p className="text-sm font-medium text-slate-300 break-all">{user.email}</p>
+                                    </div>
+                                    <div className="flex justify-between items-end">
+                                        <div>
+                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Membro Desde</label>
+                                            <p className="text-[10px] text-slate-400 font-bold">{new Date(user.created_at).toLocaleDateString('pt-BR')}</p>
+                                        </div>
+                                        <p className="text-[9px] text-slate-600 font-mono">ID: {user.id.substring(0, 8)}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => toggleUserStatus(user)}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl transition-all border font-black text-[10px] uppercase tracking-widest ${user.is_active !== false
+                                            ? 'bg-red-500/5 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white'
+                                            : 'bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500 hover:text-white'
+                                            }`}
+                                    >
+                                        <i className={`fa-solid ${user.is_active !== false ? 'fa-user-slash' : 'fa-user-check'}`}></i>
+                                        {user.is_active !== false ? 'Suspender' : 'Ativar'}
+                                    </button>
+                                    <button
+                                        onClick={() => handleEdit(user)}
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-blue-600 hover:text-white rounded-2xl transition-all text-blue-400 border border-white/5 font-black text-[10px] uppercase tracking-widest"
+                                    >
+                                        <i className="fa-solid fa-sliders"></i>
+                                        Gerenciar
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Paginação */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-8 pb-10">
                         <button
-                            onClick={fetchUsers}
-                            className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all active:scale-90"
-                            title="Atualizar lista"
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 disabled:opacity-30 transition-all font-black"
                         >
-                            <i className={`fa-solid fa-rotate ${loading ? 'animate-spin' : ''}`}></i>
+                            <i className="fa-solid fa-chevron-left"></i>
+                        </button>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <button
+                                key={i + 1}
+                                onClick={() => setCurrentPage(i + 1)}
+                                className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${currentPage === i + 1
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                        : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                                    }`}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
+                        <button
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 disabled:opacity-30 transition-all font-black"
+                        >
+                            <i className="fa-solid fa-chevron-right"></i>
                         </button>
                     </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-black/20">
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Identificação</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Contato Profissional</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Nível de Acesso</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Membro Desde</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Status</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Controles</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {users.length === 0 && !loading ? (
-                                    <tr>
-                                        <td colSpan={5} className="px-8 py-20 text-center">
-                                            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
-                                                <i className="fa-solid fa-users-slash text-2xl text-slate-600"></i>
-                                            </div>
-                                            <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Nenhum usuário encontrado</p>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    users.map(user => (
-                                        <tr key={user.id} className="hover:bg-white/[0.02] transition-colors group">
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-400 font-black text-xs border border-blue-600/20">
-                                                        {user.name ? user.name.charAt(0).toUpperCase() : '?'}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-black text-sm text-white group-hover:text-blue-400 transition-colors uppercase tracking-tight">{user.name || 'Sem Nome Definido'}</p>
-                                                        <p className="text-[10px] text-slate-500 font-bold">UID: {user.id.substring(0, 8)}...</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <p className="text-sm font-medium text-slate-300">{user.email}</p>
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border whitespace-nowrap ${user.role === 'admin'
-                                                    ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                                                    : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                                                    }`}>
-                                                    {user.role === 'admin' ? '🛡️ Administrador' : '👤 Corretor'}
-                                                </span>
-                                            </td>
-                                            <td className="px-8 py-6 text-slate-500 text-xs font-bold">
-                                                {new Date(user.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-                                            </td>
-                                            <td className="px-8 py-6 text-center">
-                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border whitespace-nowrap ${user.is_active !== false
-                                                    ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                                                    : 'bg-red-500/10 text-red-500 border-red-500/20'
-                                                    }`}>
-                                                    <span className={`w-1 h-1 rounded-full ${user.is_active !== false ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                                                    {user.is_active !== false ? 'Ativo' : 'Suspenso'}
-                                                </span>
-                                            </td>
-                                            <td className="px-8 py-6 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => toggleUserStatus(user)}
-                                                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-90 border ${user.is_active !== false
-                                                            ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white'
-                                                            : 'bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500 hover:text-white'
-                                                            }`}
-                                                        title={user.is_active !== false ? "Suspender Usuário" : "Reativar Usuário"}
-                                                    >
-                                                        <i className={`fa-solid ${user.is_active !== false ? 'fa-user-slash' : 'fa-user-check'}`}></i>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleEdit(user)}
-                                                        className="px-4 py-2 bg-white/5 hover:bg-blue-600 hover:text-white rounded-xl transition-all text-blue-400 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
-                                                    >
-                                                        <i className="fa-solid fa-sliders"></i>
-                                                        Gerenciar
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                )}
             </div>
 
             {/* Modal de Edição */}
